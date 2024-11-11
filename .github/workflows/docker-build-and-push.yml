@@ -3,28 +3,29 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - master
+      - main  # Déclenche l'action lorsque vous poussez sur la branche main (ou master, selon votre configuration)
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest  # Utilisation de la dernière version d'Ubuntu sur GitHub Actions
 
     steps:
-      # Checkout the repository
-      - name: Check out the repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3  # Récupère le code du dépôt
 
-      # Log in to Docker Hub
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2  # Configure Docker Buildx pour les builds multi-plateformes
 
-      # Build the Docker image
-      - name: Build Docker image
-        run: docker build -t your-dockerhub-username/your-image-name .
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2  # Action GitHub pour se connecter à Docker Hub
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Nom d'utilisateur Docker depuis les secrets
+        password: ${{ secrets.DOCKER_TOKEN }}     # Token Docker depuis les secrets
 
-      # Push the Docker image to Docker Hub
-      - name: Push Docker image to Docker Hub
-        run: docker push your-dockerhub-username/your-image-name
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v3  # Action GitHub pour builder et pousser l'image Docker
+      with:
+        context: .  # Contexte de build (dossier où se trouve le Dockerfile)
+        push: true  # Pousse l'image vers Docker Hub
+        tags: ${{ secrets.DOCKER_USERNAME }}/my-docker-website:latest  # Tag de l'image à pousser
+
